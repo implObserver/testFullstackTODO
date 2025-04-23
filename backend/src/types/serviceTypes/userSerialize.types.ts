@@ -1,0 +1,1 @@
+export type DoneFunction = (err: unknown, user?: Express.User | false | null) => void;

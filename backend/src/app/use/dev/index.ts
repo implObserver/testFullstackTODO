@@ -8,5 +8,10 @@ import { useSession } from './session/useSession.js'
 
 export const useDevMiddlewares = () => {
     useSecurityMiddlewares();
-    
+    useSession();
+    useAuthMiddleware();
+    useLoggingMiddleware();
+    useRequestParsersMiddleware();
+    useRoutes();
+    useErrorsMiddleware();
 }

@@ -1,6 +1,6 @@
-import { FullUser } from "#/services/lib";
+import { PublicUser } from "#/services/lib";
 
 export interface UserState {
     isAuthenticated: boolean,
-    user?:FullUser,
+    user?: PublicUser,
 }

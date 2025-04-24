@@ -21,11 +21,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${figtree.variable} antialiased`}>
-        <div>
-          <ReduxProvider>
-            {children}
-          </ReduxProvider>
-        </div>
+        <ReduxProvider>
+          {children}
+        </ReduxProvider>
       </body>
     </html>
   );

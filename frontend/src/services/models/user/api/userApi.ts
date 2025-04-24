@@ -1,9 +1,9 @@
-import { $rtkApi, NewUserInput } from "#/services/lib";
+import { $rtkApi, NewUserInput, PublicUser } from "#/services/lib";
 
 export const userApi = $rtkApi.injectEndpoints({
     endpoints: (build) => ({
         // Регистрация пользователя
-        register: build.mutation<void, Partial<NewUserInput>>({
+        register: build.mutation<PublicUser, Partial<NewUserInput>>({
             query: (body) => ({
                 url: '/auth/register',
                 method: 'POST',
@@ -12,7 +12,7 @@ export const userApi = $rtkApi.injectEndpoints({
         }),
 
         // Аутентификация пользователя
-        login: build.mutation<void, Partial<NewUserInput>>({
+        login: build.mutation<PublicUser, Partial<NewUserInput>>({
             query: (body) => ({
                 url: '/auth/login',
                 method: 'POST',

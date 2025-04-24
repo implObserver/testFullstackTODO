@@ -4,7 +4,9 @@ import { Register } from "#/features/(auth)/register";
 
 const RegisterPage = () => {
     return (
-        <Register />
+        <div className="grid !h-full">
+            <Register />
+        </div>
     )
 }
 

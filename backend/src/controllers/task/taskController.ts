@@ -5,6 +5,7 @@ import { groupTasksByAssignee } from '../helpers/groupTasksByAssignee.js';
 import { FullUser } from '../../types/user/user.types.js';
 import { Status, Priority } from '@prisma/client';
 import { GroupKey, PaginationOptions } from '../../types/serviceTypes/utils.types.js';
+import { sendResponse } from '../helpers/responders/responders.js';
 
 interface CustomRequest extends Request {
     user: FullUser;
@@ -23,15 +24,11 @@ export const getAllTasks = async (
 
         const { tasks, pagination } = await prismaDB.getAllUserTasks(req.user.id, options);
 
-        res.json({
-            tasks: tasks.map(mapToFullTask),
-            pagination,
-        });
+        sendResponse(res, tasks.map(mapToFullTask), pagination);
     } catch (err) {
         next(err);
     }
 };
-
 
 export const getTasksGroupedByDeadline = async (
     req: CustomRequest,
@@ -52,15 +49,24 @@ export const getTasksGroupedByDeadline = async (
 
         const result = await prismaDB.getTasksByDueDateGroup(req.user.id, group, options);
 
-        res.json({
-            group: result.group,
-            tasks: result.tasks.map(mapToFullTask),
-            pagination: result.pagination,
-        });
+        sendResponse(
+            res,
+            {
+                group: result.group,
+                tasks: result.tasks.map(mapToFullTask),
+            },
+            {
+                page: result.pagination.page ?? 1,
+                limit: result.pagination.limit ?? 10,
+                totalItems: result.pagination.totalItems,
+                totalPages: result.pagination.totalPages,
+            }
+        );
     } catch (err) {
         next(err);
     }
 };
+
 
 export const getTasksGroupedByAssignee = async (
     req: CustomRequest,
@@ -74,19 +80,19 @@ export const getTasksGroupedByAssignee = async (
         };
 
         const { tasks, pagination } = await prismaDB.getSubordinateTasks(req.user.id, options);
-        const grouped = groupTasksByAssignee(tasks); // только задачи, без pagination
+        const grouped = groupTasksByAssignee(tasks);
 
-        res.json({
-            grouped,
-            pagination,
-        });
+        sendResponse(res, { grouped }, pagination);
     } catch (err) {
         next(err);
     }
 };
 
-
-export const createTask = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
+export const createTask = async (
+    req: CustomRequest,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
     try {
         const { title, description, dueDate, priority, assigneeId } = req.body as {
             title: string;
@@ -119,13 +125,17 @@ export const createTask = async (req: CustomRequest, res: Response, next: NextFu
             return;
         }
 
-        res.status(201).json(mapToFullTask(task));
+        sendResponse(res, mapToFullTask(task), undefined, 201);
     } catch (err) {
         next(err);
     }
 };
 
-export const updateTask = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
+export const updateTask = async (
+    req: CustomRequest,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
     try {
         const taskId = Number(req.params.id);
         const updates = req.body as Partial<{
@@ -175,7 +185,7 @@ export const updateTask = async (req: CustomRequest, res: Response, next: NextFu
             return;
         }
 
-        res.json(mapToFullTask(updated));
+        sendResponse(res, mapToFullTask(updated));
     } catch (err) {
         next(err);
     }

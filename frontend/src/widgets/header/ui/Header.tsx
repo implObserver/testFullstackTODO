@@ -1,7 +1,7 @@
 export const Header = () => {
     return (
-        <div className="h-40 bg-color-red">
-            Тут будет Хедер
+        <div className="grid border-b-3 !h-30 bg-color-red items-center">
+            <span className="!pl-20 text-[45px]">TODO List</span>
         </div>
     )
 }

@@ -1,10 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { initialState } from "./defaultState";
 import { UserState } from "../types/user.types";
-import { FullUser } from "#/services/lib";
-
-
-
+import { PublicUser } from "#/services/lib";
 
 const UserSlice = createSlice({
     name: 'user',
@@ -13,7 +10,7 @@ const UserSlice = createSlice({
         logout: () => {
             return initialState;
         },
-        login: (state: UserState, action: PayloadAction<FullUser>) => {
+        login: (state: UserState, action: PayloadAction<PublicUser>) => {
             state.isAuthenticated = true;
             state.user = action.payload;
         },

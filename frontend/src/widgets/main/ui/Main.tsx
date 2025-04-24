@@ -12,6 +12,8 @@ export const Main = () => {
     useEffect(() => {
         if (!user.isAuthenticated) {
             router.push('/register')
+        } else {
+            router.push('/tasks')
         }
     }, [router, user.isAuthenticated])
 

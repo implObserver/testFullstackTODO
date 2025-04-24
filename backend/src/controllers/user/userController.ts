@@ -9,6 +9,7 @@ import bcrypt from 'bcryptjs';
 import { NewUserInput } from '../../types/user/user.types.js';
 import { parseTimeToMs } from '../helpers/parseTimeToMs.js';
 import { RequestHandler } from 'express';
+import { sendResponse } from '../helpers/responders/responders.js';
 interface AuthenticatedRequest extends Request {
     user: User;
 }
@@ -43,7 +44,7 @@ export const registerController: RequestHandler<
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         res.status(400).json({ error: errors.array()[0].msg });
-        return
+        return;
     }
 
     try {
@@ -52,7 +53,7 @@ export const registerController: RequestHandler<
         const existingUser = await prismaDB.findUserByLogin(login);
         if (existingUser) {
             res.status(403).json({ error: 'Логин уже занят' });
-            return
+            return;
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -67,36 +68,34 @@ export const registerController: RequestHandler<
 
         if (!userId) {
             res.status(500).json({ error: 'Ошибка при создании пользователя' });
-            return
-        } else {
-
-            const { accessToken, refreshToken } = issueJWTPG(userId);
-            await prismaDB.setToken(userId, refreshToken.token);
-
-            const user = await prismaDB.findUser(userId);
-            if (!user) {
-                res.status(500).json({ error: 'Пользователь не найден после создания' });
-                return
-            } else {
-
-                res
-                    .cookie('accessToken', accessToken.token, {
-                        httpOnly: true,
-                        secure: process.env.NODE_ENV === 'production',
-                        sameSite: 'lax',
-                        maxAge: parseTimeToMs(accessToken.expires),
-                    })
-                    .cookie('refreshToken', refreshToken.token, {
-                        httpOnly: true,
-                        secure: process.env.NODE_ENV === 'production',
-                        sameSite: 'lax',
-                        maxAge: parseTimeToMs(refreshToken.expires),
-                    })
-                    .status(201)
-                    .json({ user: mapToPublicUser(user) });
-                return
-            }
+            return;
         }
+
+        const { accessToken, refreshToken } = issueJWTPG(userId);
+        await prismaDB.setToken(userId, refreshToken.token);
+
+        const user = await prismaDB.findUser(userId);
+        if (!user) {
+            res.status(500).json({ error: 'Пользователь не найден после создания' });
+            return;
+        }
+
+        res
+            .cookie('accessToken', accessToken.token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                maxAge: parseTimeToMs(accessToken.expires),
+            })
+            .cookie('refreshToken', refreshToken.token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                maxAge: parseTimeToMs(refreshToken.expires),
+            });
+
+        sendResponse(res, { user: mapToPublicUser(user) }, undefined, 201);
+        return
     } catch (err) {
         next(err);
     }
@@ -137,9 +136,9 @@ export const loginController: RequestHandler = (req, res, next) => {
                         secure: process.env.NODE_ENV === 'production',
                         sameSite: 'lax',
                         maxAge: parseTimeToMs(refreshToken.expires),
-                    })
-                    .status(200)
-                    .json({ message: 'Login successful' });
+                    });
+
+                sendResponse(res, { message: 'Login successful' });
             } catch (dbError) {
                 next(dbError);
             }

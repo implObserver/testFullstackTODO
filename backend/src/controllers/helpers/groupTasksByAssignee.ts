@@ -1,5 +1,5 @@
 import { Task } from '@prisma/client';
-import { PublicUser } from '../../../types/user/user.types.js';
+import { PublicUser } from '../../types/user/user.types.js';
 
 export interface TaskWithAssignee extends Task {
   assignee: PublicUser;

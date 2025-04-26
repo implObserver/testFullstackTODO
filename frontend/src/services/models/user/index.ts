@@ -1,9 +1,8 @@
 export {
     useFetchAuthStatusQuery,
     useLazyFetchAuthStatusQuery,
-    useLazyLogoutQuery,
     useLoginMutation,
-    useLogoutQuery,
+    useLogoutMutation,
     useRegisterMutation,
     useFetchSubordinatesQuery,
     useLazyFetchSubordinatesQuery

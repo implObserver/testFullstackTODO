@@ -29,8 +29,8 @@ export const AuthPanel = () => {
                     <DropdownMenuContent className="grid !p-2 gap-2 ">
                         <DropdownMenuLabel>My Account</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>Профиль</DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem className="!p-2">Профиль</DropdownMenuItem>
+                        <DropdownMenuItem className="!p-2">
                             <Logout></Logout>
                         </DropdownMenuItem>
                     </DropdownMenuContent>

@@ -1,6 +1,8 @@
 
+import { $rtkApi } from "#/services/lib";
 import { useAppDispatch } from "#/services/lib/helpers/hooks/useAppDispatch";
-import { useLogoutMutation } from "#/services/models/user/api/userApi";
+import { useLogoutMutation } from "#/services/models/user";
+
 import { selectUser, UserSliceActions } from "#/services/slices/user";
 import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
@@ -15,6 +17,7 @@ export const Logout = () => {
         try {
             await logout(auth.user).unwrap();
             dispatch(UserSliceActions.logout())
+            dispatch($rtkApi.util.resetApiState());
             console.log("Выход из системы выполнен!");
             router.push('/login');
         } catch (error) {

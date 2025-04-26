@@ -29,7 +29,7 @@ export const validateRegister = [
         .withMessage('Password must be at least 8 characters')
         .escape(),
 
-    body('firstName').optional().trim().escape(),
+    body('firstName').trim().escape(),
     body('lastName').optional().trim().escape(),
     body('middleName').optional().trim().escape(),
 ];

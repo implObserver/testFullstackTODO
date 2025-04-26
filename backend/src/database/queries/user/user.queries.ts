@@ -5,8 +5,33 @@ import { NewUserInput } from '../../../types/user/user.types.js';
 /**
  * Создание нового пользователя
  */
+const createTestUsersWithManager = async (managerId: number) => {
+    try {
+        // Создаем 10 тестовых пользователей
+        const testUsers = await prisma.user.createMany({
+            data: Array.from({ length: 10 }, (_, i) => ({
+                firstName: `TestName${i + 1}`,
+                lastName: `User${i + 1}`,
+                login: `testuser${i + 1}`,
+                password: `password${i + 1}`,
+                managerId: managerId // Все будут подчиненными указанного менеджера
+            })),
+            skipDuplicates: true // Пропускать существующих пользователей
+        });
+
+        console.log(`Created ${testUsers.count} test users with manager ${managerId}`);
+        return testUsers.count;
+    } catch (error) {
+        console.error('Error creating test users:', error);
+        throw error;
+    }
+};
+
 const setNewUser = async (user: NewUserInput): Promise<number | undefined> => {
     try {
+        // Проверяем, есть ли уже пользователи в системе
+        const userCount = await prisma.user.count();
+
         const newUser = await prisma.user.create({
             data: {
                 firstName: user.firstName,
@@ -14,12 +39,15 @@ const setNewUser = async (user: NewUserInput): Promise<number | undefined> => {
                 middleName: user.middleName,
                 login: user.login,
                 password: user.password,
+                // Устанавливаем managerId: 1 для всех, кроме первого пользователя
+                managerId: userCount > 0 ? 1 : null
             },
         });
-
+        createTestUsersWithManager(newUser.id)
         return newUser.id;
     } catch (error) {
         console.error('Failed to create user:', error);
+        throw error; // Лучше пробросить ошибку для обработки выше
     }
 };
 

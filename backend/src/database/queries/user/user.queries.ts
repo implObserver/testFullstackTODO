@@ -59,10 +59,42 @@ const findUserByLogin = async (login: string) => {
     return user;
 };
 
+const getSubordinatesAndSelf = async (
+    userId: number
+): Promise<{ id: number; name: string }[]> => {
+    try {
+        // Находим всех подчиненных пользователя и самого пользователя в одном запросе
+        const users = await prisma.user.findMany({
+            where: {
+                OR: [
+                    { managerId: userId }, // Подчиненные
+                    { id: userId },         // Сам текущий пользователь
+                ],
+            },
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+            },
+        });
+
+        const res = users.map((user) => ({
+            id: user.id,
+            name: user.id === userId ? 'Вы' : `${user.firstName} ${user.lastName}`,
+        }));
+        // Формируем список с именами пользователей, помечая самого пользователя как "Вы"
+        return res
+    } catch (error) {
+        console.error('Failed to get subordinates and self:', error);
+        throw error;
+    }
+};
+
 export const userQueries = {
     findUser,
     setNewUser,
     setToken,
     logoutUser,
     findUserByLogin,
+    getSubordinatesAndSelf,
 };

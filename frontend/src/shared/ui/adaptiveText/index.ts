@@ -1,0 +1,1 @@
+export { AdaptiveText } from './ui/AdaptiveText'

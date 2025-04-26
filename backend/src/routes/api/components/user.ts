@@ -1,28 +1,10 @@
 import { Router } from 'express';
+import { requireAuth } from '../../../controllers/helpers/auth/requireAuth.js';
+import { getSubordinatesController } from '../../../controllers/user/userController.js';
 
 export const userRouter = Router();
 
-userRouter.post('/signup', async (req, res) => {
-  res.send('OK');
-});
+// Применяем requireAuth ко всем маршрутам ниже
+userRouter.use(requireAuth);
 
-userRouter.post('/login', async (req, res) => {
-  res.send('OK');
-});
-
-userRouter.get('/fastlogin', async (req, res) => {
-  res.send('OK');
-});
-
-userRouter.post('/logout', async (req, res) => {
-  res.send('OK');
-});
-
-userRouter.get('/refresh-access-token', async (req, res) => {
-  res.send('OK');
-});
-
-userRouter.get('/refresh-refresh-token', async (req, res) => {
-  res.send('OK');
-});
-
+userRouter.get('/subordinates', getSubordinatesController);

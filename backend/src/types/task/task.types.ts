@@ -8,6 +8,8 @@ export interface PublicTask {
   dueDate: Date;
   priority: Priority;
   status: Status;
+  creator: string;
+  assignee: string;
 }
 
 export interface FullTask extends PublicTask {

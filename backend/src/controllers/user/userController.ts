@@ -7,8 +7,9 @@ import { mapToPublicUser } from '../../types/user/user.mapper.js';
 import { User } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { NewUserInput } from '../../types/user/user.types.js';
-import { parseTimeToMs } from '../../app/use/util/parseTimeToMs.js';
-
+import { parseTimeToMs } from '../helpers/parseTimeToMs.js';
+import { RequestHandler } from 'express';
+import { sendResponse } from '../helpers/responders/responders.js';
 interface AuthenticatedRequest extends Request {
     user: User;
 }
@@ -28,8 +29,8 @@ export const validateRegister = [
         .withMessage('Password must be at least 8 characters')
         .escape(),
 
-    body('firstName').trim().notEmpty().escape(),
-    body('lastName').trim().notEmpty().escape(),
+    body('firstName').optional().trim().escape(),
+    body('lastName').optional().trim().escape(),
     body('middleName').optional().trim().escape(),
 ];
 
@@ -43,6 +44,7 @@ export const registerController: RequestHandler<
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         res.status(400).json({ error: errors.array()[0].msg });
+        return;
     }
 
     try {
@@ -51,6 +53,7 @@ export const registerController: RequestHandler<
         const existingUser = await prismaDB.findUserByLogin(login);
         if (existingUser) {
             res.status(403).json({ error: 'Логин уже занят' });
+            return;
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -65,39 +68,38 @@ export const registerController: RequestHandler<
 
         if (!userId) {
             res.status(500).json({ error: 'Ошибка при создании пользователя' });
-        } else {
-
-            const { accessToken, refreshToken } = issueJWTPG(userId);
-            await prismaDB.setToken(userId, refreshToken.token);
-
-            const user = await prismaDB.findUser(userId);
-            if (!user) {
-                res.status(500).json({ error: 'Пользователь не найден после создания' });
-            } else {
-
-                res
-                    .cookie('accessToken', accessToken.token, {
-                        httpOnly: true,
-                        secure: process.env.NODE_ENV === 'production',
-                        sameSite: 'lax',
-                        maxAge: parseTimeToMs(accessToken.expires),
-                    })
-                    .cookie('refreshToken', refreshToken.token, {
-                        httpOnly: true,
-                        secure: process.env.NODE_ENV === 'production',
-                        sameSite: 'lax',
-                        maxAge: parseTimeToMs(refreshToken.expires),
-                    })
-                    .status(201)
-                    .json({ user: mapToPublicUser(user) });
-            }
+            return;
         }
+
+        const { accessToken, refreshToken } = issueJWTPG(userId);
+        await prismaDB.setToken(userId, refreshToken.token);
+
+        const user = await prismaDB.findUser(userId);
+        if (!user) {
+            res.status(500).json({ error: 'Пользователь не найден после создания' });
+            return;
+        }
+
+        res
+            .cookie('accessToken', accessToken.token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                maxAge: parseTimeToMs(accessToken.expires),
+            })
+            .cookie('refreshToken', refreshToken.token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                maxAge: parseTimeToMs(refreshToken.expires),
+            });
+
+        sendResponse(res, { user: mapToPublicUser(user) }, undefined, 201);
+        return
     } catch (err) {
         next(err);
     }
 };
-
-import { RequestHandler } from 'express';
 
 export const loginController: RequestHandler = (req, res, next) => {
     passport.authenticate(
@@ -134,9 +136,9 @@ export const loginController: RequestHandler = (req, res, next) => {
                         secure: process.env.NODE_ENV === 'production',
                         sameSite: 'lax',
                         maxAge: parseTimeToMs(refreshToken.expires),
-                    })
-                    .status(200)
-                    .json({ message: 'Login successful' });
+                    });
+
+                sendResponse(res, { message: 'Login successful' });
             } catch (dbError) {
                 next(dbError);
             }
@@ -149,6 +151,7 @@ export const logoutController: RequestHandler = async (req, res, next) => {
         const user = req.user as { id: number } | undefined;
         if (!user) {
             res.status(401).json({ error: 'Unauthorized' });
+            return
         } else {
             await prismaDB.logoutUser(user.id);
 
@@ -156,6 +159,7 @@ export const logoutController: RequestHandler = async (req, res, next) => {
             res.clearCookie('refreshToken');
 
             res.status(200).json({ message: 'Logout successful' });
+            return
         }
     } catch (err) {
         next(err);
@@ -167,4 +171,22 @@ export const checkAuthController: RequestHandler = (req, res) => {
     const user = (req as AuthenticatedRequest).user;
     const publicUser = mapToPublicUser(user);
     res.status(200).json({ user: publicUser });
+};
+
+/**
+ * Получение всех подчиненных пользователя, включая его самого
+ */
+export const getSubordinatesController: RequestHandler = async (req, res, next) => {
+    const user = (req as AuthenticatedRequest).user;
+    const userId = user.id; // Предполагаем, что ID пользователя уже доступен в req.user после авторизации
+
+    try {
+        // Находим всех подчиненных пользователя по managerId
+        const result = await prismaDB.getSubordinatesAndSelf(userId);
+        console.log(result)
+        sendResponse(res, result);
+    } catch (error) {
+        console.error('Failed to get subordinates:', error);
+        next(error);
+    }
 };

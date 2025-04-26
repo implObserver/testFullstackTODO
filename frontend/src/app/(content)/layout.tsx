@@ -4,6 +4,7 @@ import { Header } from "#/widgets/header/ui/Header";
 import { Footer } from "#/widgets/footer/ui/Footer";
 import { CreateTask } from "#/features/createTask";
 import { TabsOfTasks } from "#/widgets/(tasks)/tabsOfTasks";
+import { AuthPanel } from "#/widgets/authPanel";
 
 export const metadata: Metadata = {
   title: "To Do",
@@ -18,7 +19,10 @@ export default function RootLayout({
   return (
     <div className="grid min-h-screen grid-rows-[auto_auto_auto_1fr_auto]">
       <Header />
-      <CreateTask />
+      <div className="flex items-center justify-between">
+        <CreateTask />
+        <AuthPanel />
+      </div>
       <TabsOfTasks />
       {children}
       <Footer />

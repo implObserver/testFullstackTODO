@@ -38,7 +38,7 @@ export const Login = () => {
 
         try {
             const user = await loginUser(data).unwrap();
-            dispatch(UserSliceActions.login(user));
+            dispatch(UserSliceActions.login(user.data));
             router.push("/tasks");
         } catch (err) {
             const error = err as ServerError;

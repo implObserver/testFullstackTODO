@@ -1,6 +1,7 @@
-import { PublicUser } from "#/services/lib";
-
 export interface UserState {
     isAuthenticated: boolean,
-    user?: PublicUser,
+    user: {
+        firstName?: string;
+        // другие поля PublicUser
+      };
 }

@@ -6,7 +6,7 @@ import { prismaDB } from '../../database/queries/queries.js';
 import { mapToPublicUser } from '../../types/user/user.mapper.js';
 import { User } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import { NewUserInput } from '../../types/user/user.types.js';
+import { NewUserInput, PublicUser } from '../../types/user/user.types.js';
 import { parseTimeToMs } from '../helpers/parseTimeToMs.js';
 import { RequestHandler } from 'express';
 import { sendResponse } from '../helpers/responders/responders.js';
@@ -118,7 +118,12 @@ export const loginController: RequestHandler = (req, res, next) => {
                     .json({ error: info?.message || 'Unauthorized' });
             }
 
-            const typedUser = user as { id: number };
+            const typedUser = user as {
+                id: number;
+                firstName: string;
+                // Добавьте другие необходимые поля пользователя
+            };
+
             const { accessToken, refreshToken } = issueJWTPG(typedUser.id);
 
             try {
@@ -138,7 +143,12 @@ export const loginController: RequestHandler = (req, res, next) => {
                         maxAge: parseTimeToMs(refreshToken.expires),
                     });
 
-                sendResponse(res, { message: 'Login successful' });
+                sendResponse(res, {
+                    user: {
+                        firstName: typedUser.firstName
+                        // Можно добавить другие данные пользователя
+                    }
+                });
             } catch (dbError) {
                 next(dbError);
             }
@@ -148,15 +158,24 @@ export const loginController: RequestHandler = (req, res, next) => {
 
 export const logoutController: RequestHandler = async (req, res, next) => {
     try {
-        const user = req.user as { id: number } | undefined;
+        console.log(req)
+        const user = req.user as PublicUser;
         if (!user) {
             res.status(401).json({ error: 'Unauthorized' });
             return
         } else {
             await prismaDB.logoutUser(user.id);
 
-            res.clearCookie('accessToken');
-            res.clearCookie('refreshToken');
+            res.clearCookie('accessToken', {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'lax',
+            });
+            res.clearCookie('refreshToken', {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'lax',
+            });
 
             res.status(200).json({ message: 'Logout successful' });
             return

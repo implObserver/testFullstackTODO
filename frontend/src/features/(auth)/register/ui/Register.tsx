@@ -37,7 +37,7 @@ export const Register = () => {
 
         try {
             const user = await registerUser(data).unwrap();
-            dispatch(UserSliceActions.login(user))
+            dispatch(UserSliceActions.login(user.data))
             router.push('/tasks')
         } catch (err) {
             const error = err as ServerError;

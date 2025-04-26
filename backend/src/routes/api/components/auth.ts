@@ -88,9 +88,11 @@ authRouter.post('/login', loginController);
  *       200:
  *         description: Успешный выход
  */
-authRouter.post('/logout', logoutController);
 
 authRouter.use(requireAuth);
+
+authRouter.post('/logout', logoutController);
+
 /**
  * @swagger
  * /api/auth/check-auth:

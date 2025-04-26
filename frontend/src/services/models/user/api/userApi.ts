@@ -3,7 +3,7 @@ import { $rtkApi, Assignee, DefaultResponse, NewUserInput, PublicUser } from "#/
 export const userApi = $rtkApi.injectEndpoints({
     endpoints: (build) => ({
         // Регистрация пользователя
-        register: build.mutation<PublicUser, Partial<NewUserInput>>({
+        register: build.mutation<DefaultResponse<{ user: Partial<PublicUser> }>, Partial<NewUserInput>>({
             query: (body) => ({
                 url: '/auth/register',
                 method: 'POST',
@@ -12,7 +12,7 @@ export const userApi = $rtkApi.injectEndpoints({
         }),
 
         // Аутентификация пользователя
-        login: build.mutation<PublicUser, Partial<NewUserInput>>({
+        login: build.mutation<DefaultResponse<{ user: Partial<PublicUser> }>, Partial<NewUserInput>>({
             query: (body) => ({
                 url: '/auth/login',
                 method: 'POST',
@@ -21,9 +21,11 @@ export const userApi = $rtkApi.injectEndpoints({
         }),
 
         // Выход пользователя
-        logout: build.query<void, void>({
-            query: () => ({
+        logout: build.mutation<void, Partial<PublicUser>>({
+            query: (body) => ({
                 url: '/auth/logout',
+                method: 'POST',
+                body: body,
             }),
         }),
 
@@ -50,8 +52,7 @@ export const {
     useLoginMutation,
 
     // Выход
-    useLogoutQuery,
-    useLazyLogoutQuery,
+    useLogoutMutation,
 
     // Проверка статуса аутентификации
     useFetchAuthStatusQuery,

@@ -2,7 +2,7 @@
 
 ## Тестовое задание - система управления задачами  
 
-### Полнофункциональное веб-приложение для управления персональными и командными задачами  
+### Веб-приложение для управления персональными и командными задачами  
 
 #### Страница авторизации:  
 `![Auth Screenshot](https://github.com/user-attachments/assets/auth-screenshot.png)`  
@@ -31,20 +31,12 @@
 
 ## Технологический стек  
 
-### Backend:  
-```bash
-[![Node.js](https://skillicons.dev/icons?i=nodejs)]
-[![Express](https://skillicons.dev/icons?i=express)] 
-[![PostgreSQL](https://skillicons.dev/icons?i=postgresql)]
-[![Prisma](https://skillicons.dev/icons?i=prisma)]
-
-### Frontend:
-```bash
-[![React](https://skillicons.dev/icons?i=react)]
-[![Redux](https://skillicons.dev/icons?i=redux)] (Toolkit, Persist)
-[![TypeScript](https://skillicons.dev/icons?i=typescript)]
+### BackEnd:
+[![My Skills](https://skillicons.dev/icons?i=nodejs,express,postgresql,prisma)](https://skillicons.dev)
+### FrontEnd
+[![My Skills](https://skillicons.dev/icons?i=nextjs,react,redux)](https://skillicons.dev) (toolkit,persist, rtk query)
 
 ### Архитектура:
-##FSD (Feature-Sliced Design)
-##JWT аутентификация (access/refresh tokens, http-only cookies)
-##REST API
+## FSD (Feature-Sliced Design)
+## JWT аутентификация (access/refresh tokens, http-only cookies)
+## REST API

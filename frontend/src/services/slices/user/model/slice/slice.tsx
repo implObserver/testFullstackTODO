@@ -10,10 +10,13 @@ const UserSlice = createSlice({
         logout: () => {
             return initialState;
         },
-        login: (state: UserState, action: PayloadAction<PublicUser>) => {
+        login: (state: UserState, action: PayloadAction<{ user: Partial<PublicUser> }>) => {
             state.isAuthenticated = true;
-            state.user = action.payload;
-        },
+            state.user = {
+                ...state.user, // сохраняем существующие данные
+                firstName: action.payload.user.firstName || '', // значение по умолчанию
+            };
+        }
     },
 })
 

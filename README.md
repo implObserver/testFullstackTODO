@@ -14,6 +14,11 @@
 ![image](https://github.com/user-attachments/assets/c8a1567c-7632-4296-a9bb-14cab2db2585)
 *Гибкое отображение задач с возможностью группировки и сортировки*  
 
+#### Модальное окно создания задачи:  
+![image](https://github.com/user-attachments/assets/a4a9d791-9163-4e4e-88db-e0981ba119cf)
+
+*Гибкое создание задач*  
+
 #### Модальное окно редактирования задачи:  
 ![image](https://github.com/user-attachments/assets/40d266ed-6339-4f05-807a-90f643be0839)
 *Полноценное редактирование всех атрибутов задачи*  

@@ -1,0 +1,1 @@
+export { PaginationInput } from './ui/PaginationInput'

@@ -1,0 +1,1 @@
+export const labels = ["login", "password", "firstName", "lastName", "middleName"];

@@ -28,7 +28,7 @@ model User {
   login      String  @unique
   password   String
 
-  managerId    Int? // руководитель
+  managerId    Int?
   manager      User?  @relation("ManagerSubordinates", fields: [managerId], references: [id])
   subordinates User[] @relation("ManagerSubordinates")
 
@@ -37,6 +37,12 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  refreshToken String?
+
+  @@index([managerId]) // Часто используется в связке начальник-подчинённый
+  @@index([createdAt]) // Удобно для сортировки и анализа по времени создания
+  @@index([updatedAt]) // Аналогично, для анализа обновлений
 }
 
 model Task {
@@ -54,4 +60,12 @@ model Task {
 
   assigneeId Int
   assignee   User @relation("AssignedTasks", fields: [assigneeId], references: [id])
+
+  @@index([creatorId])
+  @@index([assigneeId])
+  @@index([dueDate])
+  @@index([status])
+  @@index([priority])
+  @@index([createdAt]) // Удобно для сортировки и анализа по времени создания
+  @@index([updatedAt]) // Аналогично, для анализа обновлений
 }

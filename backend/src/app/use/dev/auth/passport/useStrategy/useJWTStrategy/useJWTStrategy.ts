@@ -1,55 +1,59 @@
 import passport from 'passport';
-import { Strategy as JwtStrategy } from 'passport-jwt';
+import { Strategy as JwtStrategy, StrategyOptions, VerifiedCallback } from 'passport-jwt';
 import fs from 'fs';
-import { __pathToKeyFolder } from './keypair/generateKeypair.js';
 import path from 'path';
-import { prismaDB } from '../../../../../../../database/prisma/queries/queries.js';
+import { Request } from 'express';
+import { prismaDB } from '../../../../../../../database/queries/queries.js';
+import { __pathToKeyFolder } from './keypair/generateKeypair.js';
+import { FullUser } from '../../../../../../../types/user/user.types.js';
+import { mapToFullUser } from '../../../../../../../types/user/user.mapper.js';
 
 const pathToKey = path.join(__pathToKeyFolder, 'id_rsa_pub.pem');
 const PUB_KEY = fs.readFileSync(pathToKey, 'utf8');
 
-const cookieExtractor = (req) => {
-  let token = null;
-  if (req && req.cookies) {
-    token = req.cookies['accessToken'];
+interface JWTPayload {
+  sub: number; // user id
+  iat: number;
+  exp: number;
+}
 
-    // Проверка, есть ли токен и не является ли он undefined
-    if (token && typeof token === 'string' && token.startsWith('Bearer ')) {
-      return token.slice(7); // Удаляем 'Bearer ' из токена
-    } else if (token) {
-      return token; // Если токен не начинается с 'Bearer ', просто возвращаем его
-    }
-  }
-  return token; // Если токен не найден, возвращаем null
+// Извлечение токена из cookie
+const cookieExtractor = (req: Request): string | null => {
+  const token = req.cookies?.accessToken;
+  if (!token) return null;
+
+  return token.startsWith('Bearer ') ? token.slice(7) : token;
 };
 
-const options = {
+const options: StrategyOptions = {
   jwtFromRequest: cookieExtractor,
   secretOrKey: PUB_KEY,
   algorithms: ['RS256'],
   passReqToCallback: true,
 };
 
-//for postgresDB
-const verifyCallbackPg = async (req, payload, done) => {
+const verifyCallbackPg = async (
+  req: Request,
+  payload: JWTPayload,
+  done: VerifiedCallback
+): Promise<void> => {
   try {
     const refreshToken = req.cookies['refreshToken'];
     const user = await prismaDB.findUser(payload.sub);
-    if (!user) {
+
+    if (!user || user.refreshToken !== refreshToken) {
       return done(null, false);
     }
-    console.log(user.refreshToken !== refreshToken);
-    if (user.refreshToken !== refreshToken) {
-      return done(null, false);
-    }
-    return done(null, user);
+
+    const fullUser: FullUser = mapToFullUser(user);
+    return done(null, fullUser);
   } catch (err) {
-    return done(err);
+    return done(err as Error);
   }
 };
 
 const strategy = new JwtStrategy(options, verifyCallbackPg);
 
-export const useJWTStrategy = () => {
+export const useJWTStrategy = (): void => {
   passport.use(strategy);
 };

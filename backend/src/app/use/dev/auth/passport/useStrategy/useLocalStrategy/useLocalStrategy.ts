@@ -1,54 +1,50 @@
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import bcrypt from 'bcryptjs';
-import validator from 'validator';
-import { prismaDB } from '../../../../../../../database/prisma/queries/queries.js';
+import { prismaDB } from '../../../../../../../database/queries/queries.js'; // обнови путь под свой
+import { User } from '@prisma/client';
 
-const verifyCallbackPg = async (identifier, password, done) => {
+interface CustomVerifyCallback {
+  (
+    login: string,
+    password: string,
+    done: (error: unknown, user?: Express.User | false, options?: { message: string; status: number }) => void
+  ): Promise<void>;
+}
+
+// Верификация по логину (username)
+const verifyCallbackPg: CustomVerifyCallback = async (login, password, done) => {
   try {
-    let user;
-    const isEmail = validator.isEmail(identifier);
-    isEmail
-      ? (user = await prismaDB.findUserByEmail(identifier))
-      : (user = await prismaDB.findUserByUsername(identifier));
+    const user: User | null = await prismaDB.findUserByLogin(login);
 
     if (!user) {
-      console.log('Incorrect email or username');
       return done(null, false, {
-        message: 'Incorrect email or username',
+        message: 'Неверный логин',
         status: 401,
       });
     }
 
-    if (!user.isVerified) {
-      console.log('Почтовый ящик не подтвержден');
-      return done(null, false, {
-        message: 'Почтовый ящик не подтвержден',
-        status: 403,
-      });
-    }
+    const isMatch = await bcrypt.compare(password, user.password);
 
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) {
+    if (!isMatch) {
       return done(null, false, {
-        message: 'Incorrect password',
+        message: 'Неверный пароль',
         status: 401,
       });
     }
 
     return done(null, user);
   } catch (err) {
-    console.log('catch');
-    console.log(err);
     return done(err);
   }
 };
 
+// Стратегия Local (вводим "login" вместо "username")
 const strategy = new LocalStrategy(
-  { usernameField: 'identifier' },
+  { usernameField: 'login' }, // в форме должен быть input с name="login"
   verifyCallbackPg
 );
 
-export const useLocalStrategy = () => {
+export const useLocalStrategy = (): void => {
   passport.use(strategy);
 };

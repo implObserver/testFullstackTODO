@@ -5,19 +5,22 @@
 ### Веб-приложение для управления персональными и командными задачами  
 
 #### Страница авторизации:  
-`![Auth Screenshot](https://github.com/user-attachments/assets/auth-screenshot.png)`  
+![image](https://github.com/user-attachments/assets/21106bb0-0711-4b74-b7f2-54c215ef0201)
+![image](https://github.com/user-attachments/assets/f8f92267-e858-4332-8a7b-9cc9a5a228f0)
+
 *Вход в систему по логину и паролю с валидацией данных*  
 
 #### Основной интерфейс задач:  
-`![Tasks Screenshot](https://github.com/user-attachments/assets/tasks-screenshot.png)`  
+![image](https://github.com/user-attachments/assets/c8a1567c-7632-4296-a9bb-14cab2db2585)
 *Гибкое отображение задач с возможностью группировки и сортировки*  
 
 #### Модальное окно редактирования задачи:  
-`![Edit Modal](https://github.com/user-attachments/assets/edit-modal.png)`  
+![image](https://github.com/user-attachments/assets/40d266ed-6339-4f05-807a-90f643be0839)
 *Полноценное редактирование всех атрибутов задачи*  
 
 #### Просмотр задач подчиненных (режим руководителя):  
-`![Manager View](https://github.com/user-attachments/assets/manager-view.png)`  
+![image](https://github.com/user-attachments/assets/50039973-532e-4650-8ef5-0a64cdd9fe40)
+ 
 *Контроль задач сотрудников с иерархическим доступом*  
 
 ### Ключевые особенности:  

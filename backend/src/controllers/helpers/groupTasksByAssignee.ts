@@ -1,26 +1,22 @@
-import { Task } from '@prisma/client';
-import { PublicUser } from '../../types/user/user.types.js';
-
-export interface TaskWithAssignee extends Task {
-  assignee: PublicUser;
-}
+import { PublicUser } from "../../types/user/user.types.js";
+import { AssigneeGroup } from "../../types/serviceTypes/utils.types.js";
+import { FullTask } from "../../types/task/task.types.js";
 
 export const groupTasksByAssignee = (
-  tasks: (Task & { assignee: PublicUser })[]
-) => {
-  const grouped: Record<number, { assignee: PublicUser; tasks: Task[] }> = {};
+  tasks: (FullTask & { assignee: PublicUser })[]
+): AssigneeGroup[] => {
+  const groupedMap: Record<number, AssigneeGroup> = {};
 
   for (const task of tasks) {
     const assigneeId = task.assignee.id;
-    if (!grouped[assigneeId]) {
-      grouped[assigneeId] = {
+    if (!groupedMap[assigneeId]) {
+      groupedMap[assigneeId] = {
         assignee: task.assignee,
         tasks: [],
       };
     }
-    grouped[assigneeId].tasks.push(task);
+    groupedMap[assigneeId].tasks.push(task);
   }
 
-  return grouped;
+  return Object.values(groupedMap);
 };
-

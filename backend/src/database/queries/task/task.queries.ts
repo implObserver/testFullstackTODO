@@ -1,19 +1,25 @@
 import { prisma } from '../../prisma/getClient.js';
-import { Task } from '@prisma/client';
+import { Prisma, Task } from '@prisma/client';
 import { startOfToday, endOfToday, addDays } from 'date-fns';
 import { mapToPublicUser } from '../../../types/user/user.mapper.js';
 import { PublicUser } from '../../../types/user/user.types.js';
 import { getPagination } from '../../../controllers/helpers/getPagination.js';
 import { GroupKey, PaginationOptions } from '../../../types/serviceTypes/utils.types.js';
+import { FullTask } from '../../../types/task/task.types.js';
+import { mapToFullTask } from '../../../types/task/task.mapper.js';
 
 /**
  * Получение всех задач пользователя (созданных или назначенных)
  */
+export type TaskWithUsers = Prisma.TaskGetPayload<{
+    include: { creator: true; assignee: true };
+}>;
+
 export const getAllUserTasks = async (
     userId: number,
     options: PaginationOptions
 ): Promise<{
-    tasks: Task[];
+    tasks: FullTask[];
     pagination: {
         page: number;
         limit: number;
@@ -45,8 +51,10 @@ export const getAllUserTasks = async (
         }),
     ]);
 
+    const fullTasks: FullTask[] = tasks.map(task => mapToFullTask(task));
+
     return {
-        tasks,
+        tasks: fullTasks,
         pagination: {
             page,
             limit,
@@ -148,7 +156,7 @@ const getSubordinateTasks = async (
     managerId: number,
     options: PaginationOptions
 ): Promise<{
-    tasks: (Task & { assignee: PublicUser })[];
+    groups: { assignee: PublicUser; tasks: FullTask[] }[];
     pagination: {
         page: number;
         limit: number;
@@ -160,38 +168,70 @@ const getSubordinateTasks = async (
     const page = options.page ?? 1;
     const limit = options.limit ?? 10;
 
+    // 1. Получаем всех подчиненных (включая их данные)
     const subordinates = await prisma.user.findMany({
         where: { managerId },
-        select: { id: true },
     });
 
-    const subIds = subordinates.map((u) => u.id);
+    // 2. Добавляем самого менеджера в список
+    const manager = await prisma.user.findUnique({
+        where: { id: managerId },
+    });
 
+    if (!manager) {
+        throw new Error('Manager not found');
+    }
+
+    const allAssignees = [...subordinates, manager];
+    const assigneeIds = allAssignees.map(u => u.id);
+
+    // 3. Получаем задачи для всех пользователей
     const [tasks, totalItems] = await Promise.all([
         prisma.task.findMany({
             where: {
-                assigneeId: { in: subIds }
+                assigneeId: { in: assigneeIds }
             },
             orderBy: { updatedAt: 'desc' },
             skip,
             take,
             include: {
-                creator: false,
                 assignee: true,
+                creator: true // Добавляем creator если нужно для FullTask
             },
         }),
         prisma.task.count({
             where: {
-                assigneeId: { in: subIds }
+                assigneeId: { in: assigneeIds }
             },
         }),
     ]);
 
-    return {
-        tasks: tasks.map(task => ({
+    // 4. Группируем задачи по исполнителям
+    const groupedMap: Record<number, { assignee: PublicUser; tasks: FullTask[] }> = {};
+
+    // 5. Инициализируем группы для всех исполнителей
+    for (const assignee of allAssignees) {
+        groupedMap[assignee.id] = {
+            assignee: mapToPublicUser(assignee),
+            tasks: []
+        };
+    }
+
+    // 6. Заполняем задачи в соответствующие группы
+    for (const task of tasks) {
+        const fullTask: FullTask = {
             ...task,
-            assignee: mapToPublicUser(task.assignee),
-        })),
+            creator: `${task.creator.firstName} ${task.creator.lastName}`,
+            assignee: `${task.assignee.firstName} ${task.assignee.lastName}`,
+        };
+        groupedMap[task.assigneeId].tasks.push(fullTask);
+    }
+
+    // 7. Преобразуем в массив и фильтруем пустые группы
+    const groups = Object.values(groupedMap).filter(group => group.tasks.length > 0);
+
+    return {
+        groups,
         pagination: {
             page,
             limit,
@@ -246,11 +286,23 @@ const updateTask = async (taskId: number, updates: Task): Promise<Task | null> =
  * Проверка, является ли пользователь подчинённым
  */
 const isSubordinate = async (managerId: number, userId: number): Promise<boolean> => {
-    const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { managerId: true },
-    });
-    return user?.managerId === managerId;
+    console.log('userId:', userId);
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: Number(userId) },
+            select: { managerId: true },
+        });
+
+        if (!user) {
+            console.warn(`Пользователь с id ${userId} не найден`);
+            return false;
+        }
+
+        return user.managerId === managerId;
+    } catch (error) {
+        console.error('Ошибка при запросе isSubordinate:', error);
+        return false;
+    }
 };
 
 export const taskQueries = {

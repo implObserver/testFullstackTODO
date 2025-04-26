@@ -7,7 +7,11 @@ export interface PaginationMeta extends PaginatedRequestParams {
 
 export interface PaginatedResponse<T, D = T[]> {
     data: D;
-    pagination: PaginationMeta,
+    paginate: PaginationMeta,
+}
+
+export interface DefaultResponse<T, D = T> {
+    data: D;
 }
 
 export type ServerError = {

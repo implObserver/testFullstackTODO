@@ -20,6 +20,6 @@ export function sendResponse<T>(
     const responseBody = paginate
         ? { data, paginate }
         : { data };
-
+    console.log(data)
     return res.status(statusCode).json(responseBody);
 }

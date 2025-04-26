@@ -1,8 +1,8 @@
-// middlewares/error/handleDevErrors.ts
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 
 interface AppError extends Error {
   status?: number;
+  originalStatus?: number; // для специфичных статусов
 }
 
 export const handleDevErrors = () => {
@@ -10,15 +10,24 @@ export const handleDevErrors = () => {
     err: AppError,
     req: Request,
     res: Response,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    next: NextFunction
   ) {
     const isDev = req.app.get('env') === 'development';
 
-    res.status(err.status || 500);
-    res.render('error', {
+    const statusCode = err.status || err.originalStatus || 500; // используем originalStatus если нужно
+
+    // В режиме разработки выводим полную информацию об ошибке
+    if (isDev) {
+      return res.status(statusCode).json({
+        message: err.message,
+        stack: err.stack,
+      });
+    }
+
+    // В продакшн-режиме, не показываем стек
+    return res.status(statusCode).json({
       message: err.message,
-      error: isDev ? err : {},
+      // Можно добавить дополнительные поля, такие как data, если нужно
     });
   };
 };
+

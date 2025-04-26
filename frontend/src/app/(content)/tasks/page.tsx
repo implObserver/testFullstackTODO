@@ -1,7 +1,7 @@
-import { Main } from "#/widgets/main";
+import { Tasks } from "#/widgets/(tasks)/tasks";
 
 export default function Home() {
   return (
-    <Main />
+    <Tasks />
   );
 }

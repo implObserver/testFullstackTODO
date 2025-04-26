@@ -172,3 +172,21 @@ export const checkAuthController: RequestHandler = (req, res) => {
     const publicUser = mapToPublicUser(user);
     res.status(200).json({ user: publicUser });
 };
+
+/**
+ * Получение всех подчиненных пользователя, включая его самого
+ */
+export const getSubordinatesController: RequestHandler = async (req, res, next) => {
+    const user = (req as AuthenticatedRequest).user;
+    const userId = user.id; // Предполагаем, что ID пользователя уже доступен в req.user после авторизации
+
+    try {
+        // Находим всех подчиненных пользователя по managerId
+        const result = await prismaDB.getSubordinatesAndSelf(userId);
+        console.log(result)
+        sendResponse(res, result);
+    } catch (error) {
+        console.error('Failed to get subordinates:', error);
+        next(error);
+    }
+};

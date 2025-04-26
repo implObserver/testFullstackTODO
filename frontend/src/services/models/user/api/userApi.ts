@@ -1,4 +1,4 @@
-import { $rtkApi, NewUserInput, PublicUser } from "#/services/lib";
+import { $rtkApi, Assignee, DefaultResponse, NewUserInput, PublicUser } from "#/services/lib";
 
 export const userApi = $rtkApi.injectEndpoints({
     endpoints: (build) => ({
@@ -30,7 +30,12 @@ export const userApi = $rtkApi.injectEndpoints({
         // Проверка статуса аутентификации
         fetchAuthStatus: build.query<void, void>({
             query: () => ({
-                url: '/check_auth',
+                url: 'auth/check_auth',
+            }),
+        }),
+        fetchSubordinates: build.query<DefaultResponse<Assignee[]>, void>({
+            query: () => ({
+                url: 'user/subordinates',
             }),
         }),
     }),
@@ -51,4 +56,7 @@ export const {
     // Проверка статуса аутентификации
     useFetchAuthStatusQuery,
     useLazyFetchAuthStatusQuery,
+
+    useFetchSubordinatesQuery,
+    useLazyFetchSubordinatesQuery,
 } = userApi;

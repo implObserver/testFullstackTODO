@@ -1,51 +1,78 @@
-import { $rtkApi, NewUserInput } from "#/services/lib";
-import { FetchRequestParams, IdRequestParams } from "#/services/lib/types/shared/parameters";
+import { $rtkApi } from "#/services/lib";
+import { FetchRequestParams, IdRequestParams, PaginatedRequestParams } from "#/services/lib/types/shared/parameters";
 import { PaginatedResponse } from "#/services/lib/types/shared/requests.types";
-import { FullTask, PublicTask } from "#/services/lib/types/task.types";
+import { AssigneeGroup, FullTask, PublicTask, TaskModalType } from "#/services/lib/types/task.types";
 
 export const taskApi = $rtkApi.injectEndpoints({
     endpoints: (build) => ({
-        // Регистрация пользователя
-        fetchUserTasks: build.query<PaginatedResponse<FullTask>, void>({
-            query: () => ({
-                url: '/task',
-            }),
+        fetchUserTasks: build.query<PaginatedResponse<FullTask>, PaginatedRequestParams>({
+            query: (parameters) => {
+                const params = new URLSearchParams();
+                params.append('page', parameters.page.toString());
+                params.append('paginate', parameters.limit.toString());
+                return {
+                    url: `/tasks/?${params.toString()}`,
+                };
+            },
+            providesTags: ['tasks'],
         }),
 
-        // Аутентификация пользователя
-        createUserTask: build.mutation<void, Partial<NewUserInput>>({
+        createUserTask: build.mutation<void, Partial<TaskModalType>>({
             query: (body) => ({
-                url: '/task',
+                url: '/tasks',
                 method: 'POST',
                 body: body,
             }),
+            invalidatesTags: ['tasks'],
         }),
 
-        // Выход пользователя
-        fetchGroupedUserTaskByDeadlines: build.query<void, void>({
-            query: () => ({
-                url: '/task/grouped/deadlines',
-            }),
+        fetchGroupedUserTaskByDeadlines: build.query<PaginatedResponse<FullTask>, FetchRequestParams<[PaginatedRequestParams, { group: string }]>>({
+            query: (parameters) => {
+                const params = new URLSearchParams();
+                params.append('page', parameters.page.toString());
+                params.append('paginate', parameters.limit.toString());
+
+                if (parameters.group) params.append('group', parameters.group.toString());
+            
+                return {
+                    url: `/tasks/grouped/deadlines?${params.toString()}`,
+                };
+            },
+            providesTags: ['tasks'],
         }),
 
-        // Проверка статуса аутентификации
-        fetchGroupedUserTaskByAssignee: build.query<void, void>({
-            query: () => ({
-                url: '/task/grouped/assignees',
-            }),
+        fetchGroupedUserTaskByAssignee: build.query<PaginatedResponse<AssigneeGroup>, PaginatedRequestParams>({
+            query: (parameters) => {
+                const params = new URLSearchParams();
+                params.append('page', parameters.page.toString());
+                params.append('paginate', parameters.limit.toString());
+            
+                return {
+                    url: `/tasks/grouped/assignees?${params.toString()}`,
+                };
+            },
+            providesTags: ['tasks'],
         }),
 
-        patchUserTask: build.mutation<void, FetchRequestParams<[IdRequestParams, { body: Partial<PublicTask> }]>>({
+        patchUserTask: build.mutation<void, FetchRequestParams<[{ ids: IdRequestParams }, { body: TaskModalType }]>>({
             query: (parameters) => ({
-                url: `/task/${parameters.id}`,
+                url: `/tasks/${parameters.ids.id}`,
                 method: 'PATCH',
                 body: parameters.body,
             }),
+            invalidatesTags: ['tasks'],
+        }),
+        updateUserTask: build.mutation<void, FetchRequestParams<[{ body: PublicTask }, IdRequestParams,]>>({
+            query: (parameters) => ({
+                url: `/tasks/${parameters.id}`,
+                method: 'PUT',
+                body: parameters.body,
+            }),
+            invalidatesTags: ['tasks'],
         }),
     }),
 });
 
-// Экспортируйте хуки для использования в компонентах
 export const {
     useCreateUserTaskMutation,
     useFetchGroupedUserTaskByAssigneeQuery,
@@ -55,4 +82,5 @@ export const {
     useLazyFetchGroupedUserTaskByDeadlinesQuery,
     useLazyFetchUserTasksQuery,
     usePatchUserTaskMutation,
+    useUpdateUserTaskMutation,
 } = taskApi;

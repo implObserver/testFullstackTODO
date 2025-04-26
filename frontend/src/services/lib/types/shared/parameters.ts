@@ -4,7 +4,7 @@ export interface PaginatedRequestParams {
 }
 
 export interface IdRequestParams {
-    id?: string;
+    [key: string]: string | number,
 }
 
 export interface FilterParam {
@@ -13,6 +13,11 @@ export interface FilterParam {
 
 export interface SortParam {
     [key: string]: string,
+}
+export interface Groups {
+    today?: 'today',
+    week?: 'thisWeek',
+    future?: 'future',
 }
 
 type UnionToIntersection<U> = (U extends unknown ? (k: U) => void : never) extends (k: infer I) => void ? I : never;

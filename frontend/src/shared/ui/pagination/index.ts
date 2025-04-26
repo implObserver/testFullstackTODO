@@ -1,0 +1,1 @@
+export { PaginationPanel } from './ui/Pagination'

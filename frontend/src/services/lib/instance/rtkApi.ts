@@ -14,7 +14,7 @@ const baseQuery = fetchBaseQuery({
 
 const baseQueryWithAuth: typeof baseQuery = async (args, api, extraOptions) => {
     const result = await baseQuery(args, api, extraOptions);
-
+    console.log(result)
     // Если статус ответа 401 (Unauthorized), делаем редирект на /login
     if (result.error?.status === 401) {
         window.location.href = '/login';
@@ -26,7 +26,7 @@ const baseQueryWithAuth: typeof baseQuery = async (args, api, extraOptions) => {
 export const $rtkApi = createApi({
     reducerPath: 'rtkApi',
     tagTypes: [
-        
+        'tasks'
     ],
     baseQuery: baseQueryWithAuth,
     endpoints: () => ({}),

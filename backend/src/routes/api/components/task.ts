@@ -1,5 +1,5 @@
 import { RequestHandler, Router } from 'express';
-import { createTask, getAllTasks, getTasksGroupedByAssignee, getTasksGroupedByDeadline, updateTask } from '../../../controllers/task/taskController.js';
+import { createTask, getAllTasks, getTasksGroupedByAssignee, getTasksGroupedByDeadline, patchTask, validateTask } from '../../../controllers/task/taskController.js';
 import { requireAuth } from '../../../controllers/helpers/auth/requireAuth.js';
 
 export const taskRouter = Router();
@@ -101,7 +101,7 @@ taskRouter.use(requireAuth);
 
 /**
  * @swagger
- * /api/task:
+ * /api/tasks:
  *   get:
  *     summary: Получить все задачи пользователя с пагинацией
  *     tags: [Tasks]
@@ -171,7 +171,7 @@ taskRouter.get('/', getAllTasks as RequestHandler);
 
 /**
  * @swagger
- * /api/task/grouped/deadlines:
+ * /api/tasks/grouped/deadlines:
  *   get:
  *     summary: Группировка задач по срокам с пагинацией
  *     tags: [Tasks]
@@ -260,7 +260,7 @@ taskRouter.get('/grouped/deadlines', getTasksGroupedByDeadline as RequestHandler
 
 /**
  * @swagger
- * /api/task/grouped/assignees:
+ * /api/tasks/grouped/assignees:
  *   get:
  *     summary: Группировка задач по подчинённым с пагинацией
  *     tags: [Tasks]
@@ -315,7 +315,7 @@ taskRouter.get('/grouped/assignees', getTasksGroupedByAssignee as RequestHandler
 
 /**
  * @swagger
- * /api/task:
+ * /api/tasks:
  *   post:
  *     summary: Создать задачу
  *     tags: [Tasks]
@@ -354,11 +354,11 @@ taskRouter.get('/grouped/assignees', getTasksGroupedByAssignee as RequestHandler
  *             schema:
  *               $ref: '#/components/schemas/FullTask'
  */
-taskRouter.post('/', createTask as RequestHandler);
+taskRouter.post('/', validateTask, createTask as RequestHandler);
 
 /**
  * @swagger
- * /api/task/{id}:
+ * /api/tasks/{id}:
  *   patch:
  *     summary: Обновить задачу
  *     tags: [Tasks]
@@ -399,4 +399,4 @@ taskRouter.post('/', createTask as RequestHandler);
  *             schema:
  *               $ref: '#/components/schemas/FullTask'
  */
-taskRouter.patch('/:id', updateTask as RequestHandler);
+taskRouter.patch('/:id', patchTask as RequestHandler);

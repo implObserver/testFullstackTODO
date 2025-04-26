@@ -5,4 +5,6 @@ export {
     useLoginMutation,
     useLogoutQuery,
     useRegisterMutation,
+    useFetchSubordinatesQuery,
+    useLazyFetchSubordinatesQuery
 } from './api/userApi'

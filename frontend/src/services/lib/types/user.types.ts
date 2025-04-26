@@ -19,3 +19,8 @@ export interface FullUser extends PublicUser {
     updatedAt: Date;
     managerId?: number;
 }
+
+export interface Assignee {
+    id: number,
+    name: string,
+} 

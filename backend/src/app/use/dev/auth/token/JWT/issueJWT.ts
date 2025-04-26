@@ -49,7 +49,7 @@ export const getRefreshToken = (id:number) => {
 export const issueJWTPG = (id:number) => {
   const _id = id;
 
-  const accessExpiresIn = '15m';
+  const accessExpiresIn = '60m';
 
   const accessPayload = {
     sub: _id,

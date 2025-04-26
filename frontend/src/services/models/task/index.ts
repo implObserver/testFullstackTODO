@@ -6,5 +6,6 @@ export {
     useLazyFetchGroupedUserTaskByAssigneeQuery,
     useLazyFetchGroupedUserTaskByDeadlinesQuery,
     useLazyFetchUserTasksQuery,
-    usePatchUserTaskMutation
+    usePatchUserTaskMutation,
+    useUpdateUserTaskMutation
 } from './api/taskApi'

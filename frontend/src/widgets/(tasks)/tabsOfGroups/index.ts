@@ -1,0 +1,1 @@
+export { TabsOfGroups } from './ui/TabsOfGroups'
